@@ -1,0 +1,17 @@
+// loading different modules used for simulation
+
+IFMACRO(!idpModules)
+macro idpModules 1 // prevent multiple include statements
+
+load "iovtk"
+
+// load "MUMPS"
+// load "MUMPS_FreeFem"
+
+load "distance"
+// used to redistancing the distance function of the level set method
+
+include "getARGV.idp"
+// load subroutines to read command line arguments
+
+ENDIFMACRO

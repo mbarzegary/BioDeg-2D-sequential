@@ -1,0 +1,56 @@
+// load modules
+include "modules.idp"
+
+// simulation, material, geometry, and solver parameters
+include "parameters.idp"
+
+// load basic macros and functions
+include "functions.idp"
+
+printHeader();
+
+// create and configure the initial mesh
+include "geometry.idp"
+
+// definition of finite element and simulation variables
+include "variables.idp"
+
+// load weak forms of the problem PDEs
+include "weak.idp"
+
+// initial conditions and setup
+include "initial.idp"
+
+// define matrices required for solutions
+matrix A;
+real[int] B(SpaceP1.ndof);
+
+// main time loop
+for(real t=0.; t<Tfinal; t += dt)
+{
+  // store previous value of solution spaces, required for finite difference discretization of time
+  phiold  = phi;
+  Fold = F;
+  Mgold = Mg;
+  Clold = Cl;
+  OHold = OH;
+
+  scaffoldSize = int2d(Mesh)(scaffold);
+
+  printDivider;
+  print("Time: " + t + "    Step: " + count + "    Evolved H2: " + (Vinit - scaffoldSize)*conv)
+  print("Initial size: " + Vinit + "    Current size: " + scaffoldSize
+  + "    % Change: " + ((Vinit - scaffoldSize) / Vinit * 100))
+  printDivider;
+
+  // save output to disk if it should be
+  include "save.idp"
+
+  // calcualte interface shrinkage velocity
+  include "interface.idp"
+
+  // solve the PDEs and redistance distance function if required
+  include "solver.idp"
+
+  count += 1;
+}

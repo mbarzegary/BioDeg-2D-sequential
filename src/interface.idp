@@ -1,0 +1,31 @@
+// computing phi function gradient and interface shrinkage velocity
+
+IFMACRO(!idpInterface)
+macro idpInterface 1 // prevent multiple include statements
+
+print("Computing interface shrinkage velocity...")
+
+// compute the normal value of the distance function and its gradient at each node
+normgradphi = sqrt(grad(phi)'*grad(phi)+1e-6);
+xphi = dx(phi);
+yphi = dy(phi);
+
+// we want to calculate the gradient of concentration at the distance h of the interface
+dirx = -h*xphi/normgradphi;
+diry = -h*yphi/normgradphi;
+
+// compute effective diffusion coefficients
+DeMg = DMg * ((1 - F/Fmax) + (F/Fmax)*del*eps/tau);
+DeCl = DCl * ((1 - F/Fmax) + (F/Fmax)*del*eps/tau) * (phi <= 0);
+DeOH = DOH * ((1 - F/Fmax) + (F/Fmax)*del*eps/tau) * (phi <= 0);
+
+// calculate velocity of the interface
+if (t == 0)
+  v = 0;
+else
+{
+  v = - (Mg(x+dirx, y+diry) - Mg(x+2*dirx, y+2*diry)) * DeMg(x+dirx, y+diry) * vDenom / h;
+  v = min(v, 0);
+}
+
+ENDIFMACRO

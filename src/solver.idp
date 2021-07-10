@@ -1,0 +1,69 @@
+// solving the PDEs
+
+IFMACRO(!idpSolver)
+macro idpSolver 1 // prevent multiple include statements
+
+print("Solving level set equation..."); setCPUTime;
+
+// solve level set PDE to get phi function
+A = shrink(SpaceP1, SpaceP1); // left hand side terms
+B = shrink(0, SpaceP1); // right hand side terms
+phi[] = A^-1 * B; // solve the assembled system
+
+printElapsedTime;
+
+if (doRedistance) // if it is configured to redistance distance function
+{
+  if (t >= timeToRedistance) // if redistancing should be done in current time step
+  {
+    print("Redistancing the distance function...")
+
+    distance(Mesh, phi, phiTemp[]);
+    phi = phiTemp;
+
+    timeToRedistance += dtRedistance; // the next time in which redistancing will be performed
+  }
+}
+
+// phi is changed, so we have to detect the scaffold region again
+scaffold = (phi > 0);
+
+print("Solving Mg concentration equation..."); setCPUTime;
+
+// solve Mg PDE to get Mg concentration
+A = magnes(SpaceP1, SpaceP1);
+B = magnes(0, SpaceP1);
+Mg[] = A^-1 * B;
+
+printElapsedTime;
+
+print("Solving Cl ion concentration equation..."); setCPUTime;
+
+// solve Cl PDE to get chloride ion concentration
+A = chloride(SpaceP1, SpaceP1);
+B = chloride(0, SpaceP1);
+Cl[] = A^-1 * B;
+
+printElapsedTime;
+
+print("Solving protective film formation equation..."); setCPUTime;
+
+// // solve film PDE to get protective film concentration
+A = film(SpaceP1, SpaceP1);
+B = film(0, SpaceP1);
+F[] = A^-1 * B;
+
+printElapsedTime;
+
+print("Solving pH equation..."); setCPUTime;
+
+// solve OH PDE to get hydroxide ion concentration
+A = hydroxide(SpaceP1, SpaceP1);
+B = hydroxide(0, SpaceP1);
+OH[] = A^-1 * B;
+
+printElapsedTime;
+
+scaffold = (phi > 0);
+
+ENDIFMACRO
